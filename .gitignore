@@ -1,0 +1,99 @@
+# Executáveis
+*.exe
+*.out
+*.app
+*.dll
+*.so
+*.dylib
+
+# Arquivos objeto
+*.o
+*.obj
+*.a
+*.lib
+
+# Arquivos de debug
+*.pdb
+*.ilk
+*.exp
+
+# Arquivos temporários do compilador
+*.d
+*.dep
+*.tmp
+*.temp
+
+# Diretórios de build
+build/
+bin/
+obj/
+debug/
+release/
+
+# Arquivos do VS Code (manter configurações do projeto para facilitar setup)
+# .vscode/
+# Descomente a linha acima se quiser ignorar configurações do VS Code
+# 
+# Para este projeto, recomenda-se MANTER .vscode/ pois:
+# - Contém configurações específicas do SFML
+# - Facilita setup para outros desenvolvedores
+# - Tasks de compilação já configuradas
+
+# Arquivos do Visual Studio
+*.vcxproj.user
+*.vcxproj.filters
+*.sln.docstates
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Arquivos do Dev-C++
+*.dev
+*.layout
+
+# Arquivos do Code::Blocks
+*.cbp
+*.layout
+*.depend
+*.workspace
+
+# Arquivos do CLion
+.idea/
+cmake-build-*/
+
+# Arquivos de sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Arquivos de backup
+*.bak
+*.backup
+*~
+
+# Arquivos específicos do projeto
+# main.exe (já coberto por *.exe)
+
+# Arquivos temporários do Windows
+desktop.ini
+
+# Arquivos do MinGW
+*.a
+*.dll.a
+
+# Cache do CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile.cmake
+
+# Arquivos do GDB
+.gdb_history
