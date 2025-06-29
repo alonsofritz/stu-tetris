@@ -37,20 +37,35 @@ int main() {
 
     srand(time(0));
 
-    RenderWindow window(VideoMode({480,540}), "Sample Tetris!");
+    RenderWindow window(VideoMode({391,495}), "Sample Tetris!");
 
-    Texture t;
-    bool loaded = t.loadFromFile("assets/tiles.png");
-    if (!loaded) {
+    Texture t_tile, t_gameField, t_bg;
+
+    if (!t_tile.loadFromFile("assets/tiles.png")) {
         return -1; // Error loading texture
     }
 
-    Sprite s(t);
+    if (!t_bg.loadFromFile("assets/background.jpg")) {
+        return -1; // Error loading texture
+    }
+
+    if (!t_gameField.loadFromFile("assets/game_field_02.png")) {
+        return -1; // Error loading texture
+    }
+
+    Sprite s(t_tile), gameField(t_gameField), background(t_bg);
     s.setTextureRect(IntRect({0,0},{24,24}));
 
     int dir_x = 0;
     bool rotate = 0;
-    int typeNum = 1;
+    int typeNum = 1 + rand()%7;
+
+    // Initialize first piece
+    int n = rand()%7;
+    for (int i = 0; i < 4; i++) {
+        a[i].x = figures[n][i] % 2;
+        a[i].y = figures[n][i] / 2;
+    }
 
     float timer = 0;
     float delay = 0.3;
@@ -158,6 +173,8 @@ int main() {
 
         /// DRAW
         window.clear(Color::White);
+        window.draw(background);
+        window.draw(gameField);
         
         for (int i = 0; i < M; i++) {
             for (int j = 0; j < N; j++) {
@@ -165,14 +182,14 @@ int main() {
                     continue;
                 }
                 s.setTextureRect(IntRect({field[i][j]*24, 0},{24,24}));
-                s.setPosition(Vector2f(j*24, i*24));
+                s.setPosition(Vector2f(76 + j*24, 6 + i*24));
                 window.draw(s);
             }
         }
         
         for (int i = 0; i < 4; i ++) {
             s.setTextureRect(IntRect({typeNum*24, 0},{24, 24}));
-            s.setPosition(Vector2f(a[i].x*24, a[i].y*24));
+            s.setPosition(Vector2f(76 + a[i].x*24, 6 + a[i].y*24));
             window.draw(s);
         }
     
