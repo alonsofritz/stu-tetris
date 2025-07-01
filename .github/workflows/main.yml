@@ -1,0 +1,62 @@
+name: Build Tetris Game (Windows)
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '**'                   # Monitora todas as mudanças
+      - '!.github/workflows/**' # Exceto mudanças nos próprios workflows
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install MinGW with GCC 14.2.0
+      run: |
+        # Baixa o MinGW com GCC 14.2.0
+        curl -L https://github.com/brechtsanders/winlibs_mingw/releases/download/14.2.0-15.0.7/winlibs-x86_64-posix-seh-gcc-14.2.0-mingw-w64msvcrt-11.0.1-r7.7z -o mingw.7z
+        
+        # Extrai o MinGW
+        7z x mingw.7z -y -o"C:/mingw"
+        
+        # Adiciona ao PATH
+        echo "C:\mingw\mingw64\bin" >> $env:GITHUB_PATH
+        
+        # Verifica a versão do GCC
+        g++ --version
+
+    - name: Download SFML for MinGW
+      run: |
+        # Versão específica para MinGW/GCC 14.2.0
+        curl -L "https://www.sfml-dev.org/files/SFML-3.0.0-windows-gcc-14.2.0-mingw-64-bit.zip" -o sfml.zip
+        7z x sfml.zip -y
+        ren SFML-3.0.0 sfml
+
+    - name: Compile Tetris
+      run: |
+        g++ -I"./sfml/include" -L"./sfml/lib" -o tetris.exe main.cpp -lsfml-graphics -lsfml-window -lsfml-system
+
+    - name: Package game
+      run: |
+        mkdir -p tetris_package
+        cp -r assets tetris_package/
+        cp tetris.exe tetris_package/
+        cp sfml/bin/*.dll tetris_package/
+        
+        # Cria um arquivo batch para executar
+        echo "@echo off" > tetris_package/run_tetris.bat
+        echo "start tetris.exe" >> tetris_package/run_tetris.bat
+
+    - name: Zip package
+      run: |
+        7z a -tzip tetris_windows.zip ./tetris_package/*
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4  # Versão atualizada
+      with:
+        name: tetris-windows-package
+        path: tetris_windows.zip
