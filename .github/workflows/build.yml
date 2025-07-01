@@ -1,0 +1,107 @@
+name: Build and Package Tetris Game
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Instalação do MinGW com GCC 14.2.0 no Windows
+    - name: Install MinGW (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        # Baixa o MinGW com GCC 14.2.0
+        curl -L https://github.com/brechtsanders/winlibs_mingw/releases/download/14.2.0-15.0.7/winlibs-x86_64-posix-seh-gcc-14.2.0-mingw-w64msvcrt-11.0.1-r7.7z -o mingw.7z
+        
+        # Extrai o MinGW
+        7z x mingw.7z -y -o"C:/mingw"
+        
+        # Adiciona ao PATH
+        echo "C:\mingw\mingw64\bin" >> $env:GITHUB_PATH
+        
+        # Verifica a versão do GCC
+        g++ --version
+
+    # Instala dependências para Linux
+    - name: Install dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libx11-dev libxrandr-dev libudev-dev libgl1-mesa-dev libfreetype6-dev libopenal-dev libflac-dev libvorbis-dev
+
+    # Download do SFML compatível com GCC
+    - name: Download SFML
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          # Versão específica para MinGW/GCC 14.2.0
+          curl -L "https://www.sfml-dev.org/files/SFML-3.0.0-windows-gcc-14.2.0-mingw-64-bit.zip" -o sfml.zip
+          7z x sfml.zip -y
+          ren SFML-3.0.0 sfml
+        else
+          # Versão para Linux
+          curl -L "https://github.com/SFML/SFML/releases/download/3.0.0/SFML-3.0.0-linux-gcc-64-bit.tar.gz" -o sfml.tar.gz
+          tar -xzf sfml.tar.gz
+          mv SFML-3.0.0 sfml
+        fi
+
+    # Compilação do projeto
+    - name: Compile project
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          # Compilação no Windows com MinGW
+          g++ -I"./sfml/include" -L"./sfml/lib" -o tetris.exe main.cpp -lsfml-graphics -lsfml-window -lsfml-system
+        else
+          # Compilação no Linux
+          g++ -I"./sfml/include" -L"./sfml/lib" -o tetris main.cpp -lsfml-graphics -lsfml-window -lsfml-system
+        fi
+
+    # Empacotamento
+    - name: Package game
+      run: |
+        mkdir -p tetris_package
+        cp -r assets tetris_package/
+        
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          cp tetris.exe tetris_package/
+          cp sfml/bin/*.dll tetris_package/
+          
+          # Cria um arquivo batch para executar
+          echo "@echo off" > tetris_package/run_tetris.bat
+          echo "start tetris.exe" >> tetris_package/run_tetris.bat
+        else
+          cp tetris tetris_package/
+          cp sfml/lib/*.so* tetris_package/
+          
+          # Cria um script shell para executar
+          echo "#!/bin/bash" > tetris_package/run_tetris.sh
+          echo "export LD_LIBRARY_PATH=\$(dirname \"\$0\")" >> tetris_package/run_tetris.sh
+          echo "./tetris" >> tetris_package/run_tetris.sh
+          chmod +x tetris_package/run_tetris.sh
+        fi
+
+    # Criação do ZIP
+    - name: Zip package
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          7z a -tzip tetris_${{ runner.os }}.zip ./tetris_package/*
+        else
+          zip -r tetris_${{ runner.os }}.zip ./tetris_package
+        fi
+
+    # Upload do artefato
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: tetris_${{ runner.os }}_package
+        path: tetris_${{ runner.os }}.zip
