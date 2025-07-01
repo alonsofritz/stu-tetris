@@ -2,7 +2,7 @@ name: Build Tetris Game (Windows)
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - '**'                   # Monitora todas as mudanças
       - '!.github/workflows/**' # Exceto mudanças nos próprios workflows
